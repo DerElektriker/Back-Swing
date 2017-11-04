@@ -8,11 +8,11 @@ class Example(QtGui.QWidget):
         self.setMouseTracking(1)
         self.xMouse=-100
         self.yMouse=-100
-
+        self.buffer=""
+        self.lastBuffer=list()
+        self.lastBufferCursor=0
         self.aux = QtGui.QPixmap("gen.png")
-        self.text = u'\u041b\u0435\u0432 \u041d\u0438\u043a\u043e\u043b\u0430\
-\u0435\u0432\u0438\u0447 \u0422\u043e\u043b\u0441\u0442\u043e\u0439: \n\
-\u0410\u043d\u043d\u0430 \u041a\u0430\u0440\u0435\u043d\u0438\u043d\u0430'
+        self.text = u'Remil PUTO el que lee'
         #self.lbl.setScaledContents(True)
 
         #picSize = QtCore.QSize(lbl.width() / 2 , lbl.height() / 2)
@@ -55,8 +55,25 @@ class Example(QtGui.QWidget):
         qp.begin(self)
         self.drawText(event, qp)
         print("X->",self.xMouse,"  Y->",self.yMouse)
-        qp.drawPixmap(self.xMouse-65,self.yMouse-65 ,self.aux)
+        #qp.drawPixmap(self.xMouse-65,self.yMouse-65 ,self.aux)
+        
+        txt=self.buffer
+
+    
+        qp.setBrush(QtGui.QColor.fromRgb(0.4, 0.4, 0.4,1))
+        
+        #rect=QtGui.QFontMetrics.boundingRect(txt)
+        textbox=QtCore.QRect(self.xMouse+10,self.yMouse+10 , 10 ,10)
+        textbox = qp.drawText(textbox,QtCore.Qt.TextWordWrap, txt) # draw to get the bounding rectangle
+        qp.setBrush(QtGui.QBrush(QtGui.QColor(128,128,128)))
+        qp.drawRect(textbox)
+        qp.setPen(QtCore.Qt.white)
+        qp.drawText(textbox,QtCore.Qt.TextWordWrap, 
+        txt) # draw again on top of the box
+
+
         qp.end()
+        print (self.buffer)
         
     def drawText(self, event, qp):
       
@@ -65,7 +82,38 @@ class Example(QtGui.QWidget):
         qp.drawText(event.rect(), QtCore.Qt.AlignCenter, self.text) 
 
     def test(self):
-      print ("test")
+        print ("test")
+    
+    def keyPressEvent(self, e):
+        if(e.key()==QtCore.Qt.Key_Backspace):
+            if len(self.buffer)>0:
+                self.buffer=self.buffer[:-1]
+                self.lastBufferCursor=0
+
+        elif e.key()==QtCore.Qt.Key_Enter or e.key()==QtCore.Qt.Key_Return:
+            if(len(self.lastBuffer)>5):
+                self.lastBuffer.pop(0)
+            self.lastBuffer.append(self.buffer)
+            self.lastBufferCursor=0
+            self.buffer=""
+
+        
+        elif e.key()==QtCore.Qt.Key_Escape:
+            self.buffer=""
+            print("Escape pressed")
+
+
+        elif e.key()==QtCore.Qt.Key_Up:
+            if not(abs(self.lastBufferCursor)>(len(self.lastBuffer)-1)):
+                print("YAY")
+                self.lastBufferCursor-=1
+                self.buffer=self.lastBuffer[self.lastBufferCursor]
+
+        else:
+            self.buffer+=e.text()
+            self.lastBufferCursor=0
+
+        self.update()
 
 def main():        
     app = QtGui.QApplication(sys.argv)
